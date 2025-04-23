@@ -1,32 +1,42 @@
-export function renderApp() {
-  const root = document.getElementById('root');
-  root.innerHTML = `
-    <div class="container">
-      <h1>Bijoy ⇄ Unicode Converter</h1>
-      <textarea id="input" placeholder="Type or paste Bijoy or Unicode text here..."></textarea>
-      <div class="buttons">
-        <button onclick="window.convertToUnicode()">Bijoy → Unicode</button>
-        <button onclick="window.convertToBijoy()">Unicode → Bijoy</button>
+import React, { useState, useEffect } from 'react';
+import 'style.css';
+import { sanitizeInput } from './security';
+import { readFileContent } from './fileHandler';
+import DropZone from './FileDropZone';
+import { convertText } from './conversion';
+
+export default function App() {
+  const [inputText, setInputText] = useState('');
+  const [convertedText, setConvertedText] = useState('');
+  const [conversionType, setConversionType] = useState('bijoyToUnicode');
+
+  useEffect(() => {
+    setConvertedText(convertText(inputText, conversionType));
+  }, [inputText, conversionType]);
+
+  return (
+    <div className="container">
+      <h2 style={{ textAlign: 'center' }}>Bijoy ⇄ Unicode Converter</h2>
+      <DropZone onFileRead={setInputText} />
+      <select value={conversionType} onChange={e => setConversionType(e.target.value)}>
+        <option value="bijoyToUnicode">Bijoy ➜ Unicode</option>
+        <option value="unicodeToBijoy">Unicode ➜ Bijoy</option>
+        <option value="ansiToUnicode">ANSI ➜ Unicode</option>
+        <option value="unicodeToAnsi">Unicode ➜ ANSI</option>
+        <option value="avroToBijoy">Avro ➜ Bijoy</option>
+      </select>
+      <div className="textareas">
+        <textarea
+          placeholder="Enter or drop text here..."
+          value={inputText}
+          onChange={e => setInputText(sanitizeInput(e.target.value))}
+        ></textarea>
+        <textarea
+          placeholder="Converted text"
+          value={convertedText}
+          readOnly
+        ></textarea>
       </div>
-      <textarea id="output" placeholder="Converted text will appear here..."></textarea>
     </div>
-  `;
-
-  window.convertToUnicode = () => {
-    const input = document.getElementById('input').value;
-    document.getElementById('output').value = bijoyToUnicode(input);
-  };
-
-  window.convertToBijoy = () => {
-    const input = document.getElementById('input').value;
-    document.getElementById('output').value = unicodeToBijoy(input);
-  };
-}
-
-function bijoyToUnicode(text) {
-  return text.replace(/Av/g, 'আ').replace(/A/g, 'অ');
-}
-
-function unicodeToBijoy(text) {
-  return text.replace(/আ/g, 'Av').replace(/অ/g, 'A');
+  );
 }
